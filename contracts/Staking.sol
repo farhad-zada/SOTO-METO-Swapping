@@ -19,24 +19,6 @@ error Staking__ContractLacksBalance();
 error Staking__TransferFailed();
 error Staking__NotEnoughAllowance();
 
-/* @dev
-
-_V__1. ERC20:           CREATE one token for METO, mint for three adresses
-_V__2. ERC751 NFT:      create two, one for LAND and one for METAHUT, mint for three addresses
-_V__3. STAKE:           ORDINARY
-_V__4. CLAIM:
-_V__5. STAKE:           LAND
-_V__6. CLAIM:
-___7. STAKE:           METAHUT
-___8. CLAIM:
-_V__9. STAKE:           LEVEL
-_V__10. CLAIM:
-___11. ADMIN:           SET & UNSET
-___12. CLAIM BEFORE DEADLINE
-___13. CLAIM EARLY & CHECK PENALTY
-
-*/
-
 contract PrevilagedStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable {
        IERC20Upgradeable public token;
     IERC721Upgradeable public land;
