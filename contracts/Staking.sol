@@ -419,10 +419,4 @@ contract Staking is Initializable, OwnableUpgradeable {
     ) public admin {
         _claim(staker, _id, nftType);
     }
-
-    //TESTING FUNCS
-
-    function redoRewardDedline(uint256 deadline) public {
-        rewardDeadlineSeconds = deadline;
-    }
 }
