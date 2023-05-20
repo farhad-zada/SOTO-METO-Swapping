@@ -1,12 +1,25 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.12;
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 error NotAdmin();
 
-contract Levels is OwnableUpgradeable {
+contract Levels is OwnableUpgradeable, UUPSUpgradeable {
+    
     mapping(address => uint64) private levels;
     mapping(address => bool) private admins;
+    
+    constructor() {
+            _disableInitializers();
+    }
 
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        onlyOwner
+        override
+    {}
     function initialize() public initializer {
         admins[msg.sender] = true;
         __Ownable_init();
