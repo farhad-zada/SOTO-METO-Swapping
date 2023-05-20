@@ -6,6 +6,7 @@ import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {ILevels} from "./ILevels.sol";
 
 error Staking__NotAdmin();
@@ -19,25 +20,25 @@ error Staking__TransferFailed();
 error Staking__NotEnoughAllowance();
 
 /* @dev
-TESTs DONE = V
+
 _V__1. ERC20:           CREATE one token for METO, mint for three adresses
 _V__2. ERC751 NFT:      create two, one for LAND and one for METAHUT, mint for three addresses
 _V__3. STAKE:           ORDINARY
 _V__4. CLAIM:
 _V__5. STAKE:           LAND
 _V__6. CLAIM:
-_V__7. STAKE:           METAHUT
-_V__8. CLAIM:
+___7. STAKE:           METAHUT
+___8. CLAIM:
 _V__9. STAKE:           LEVEL
 _V__10. CLAIM:
-_V__11. ADMIN:           SET & UNSET
-_V__12. CLAIM BEFORE DEADLINE
-_V__13. CLAIM EARLY & CHECK PENALTY
+___11. ADMIN:           SET & UNSET
+___12. CLAIM BEFORE DEADLINE
+___13. CLAIM EARLY & CHECK PENALTY
 
 */
 
-contract Staking is Initializable, OwnableUpgradeable {
-    IERC20Upgradeable public token;
+contract PrevilagedStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable {
+       IERC20Upgradeable public token;
     IERC721Upgradeable public land;
     IERC721Upgradeable public metahut;
     ILevels public levels;
@@ -57,7 +58,6 @@ contract Staking is Initializable, OwnableUpgradeable {
     uint256 public maxStakingAmount;
     uint256 public penaltyDivisionStep;
 
-    address public address(metahut);
 
     enum NftType {
         NONE,
@@ -116,6 +116,15 @@ contract Staking is Initializable, OwnableUpgradeable {
         _nonReentrant[msg.sender] = false;
     }
 
+    constructor() {
+            _disableInitializers();
+    }
+
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        onlyOwner
+        override
+    {}
     // Init
 
     function initialize(
