@@ -19,11 +19,20 @@ error Staking__ContractLacksBalance();
 error Staking__TransferFailed();
 error Staking__NotEnoughAllowance();
 
-contract PrevilagedStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable {
-       IERC20Upgradeable public token;
+/*
+TODO: Max staking amount based on levels
+
+
+*/
+
+contract AdvantaStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable {
+
+    IERC20Upgradeable public token;
     IERC721Upgradeable public land;
     IERC721Upgradeable public metahut;
     ILevels public levels;
+
+    bool public canActivateStaking = false;
 
     uint256 public totalStakedToken;
     uint256 public totalStakedLand;
@@ -37,7 +46,6 @@ contract PrevilagedStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable
 
     uint256 public poolMaxSize;
     uint256 public minStakingAmount;
-    uint256 public maxStakingAmount;
     uint256 public penaltyDivisionStep;
 
 
@@ -62,13 +70,23 @@ contract PrevilagedStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable
         uint256 percent;
         uint256 stakedAt;
     }
+
+    struct LevelDetails {
+        uint64 level;
+        uint256 levelReward;
+        uint256 levelMaxStakingAmount;
+
+    }
+
     mapping(address => bool) public admins;
     mapping(address => Staking[]) public stakings;
     mapping(NftType => IERC721Upgradeable) internal _typeToNft;
-    mapping(address => mapping(uint256 => address)) public owners;
-    mapping(address => mapping(address => uint256[])) public ownings;
+    mapping(address => mapping(uint256 => address)) private owners;
+    mapping(address => mapping(address => uint256[])) private ownings;
     mapping(address => bool) private _nonReentrant;
-    mapping(uint64 => uint256) public levelReward;
+    ////
+    mapping(uint64 => LevelDetails) public levelDetails;
+
 
     event Stake(address indexed staker, Staking staking);
     event Claim(address indexed staker, Staking staking);
@@ -82,7 +100,7 @@ contract PrevilagedStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable
             revert Staking__NotAvailable({amount: totalStakedToken + _amount});
         if (stakeStatus != StakeStatus.ACTIVE)
             revert Staking__StatusNotActive();
-        if (getUserTotalStakedTokenAmount(_staker) + _amount > maxStakingAmount)
+        if (getUserTotalStakedTokenAmount(_staker) + _amount > levelDetails[levels.getLevel(msg.sender)].levelMaxStakingAmount)
             revert Staking__NotAvailable({amount: _amount});
         _;
     }
@@ -124,29 +142,24 @@ contract PrevilagedStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable
         _typeToNft[NftType.METAHUT] = metahut;
         levels = ILevels(_levels);
 
-        rewardPercentage = 10;
-        rewardPercentageLand = 20;
-        rewardPercentageMetahut = 30;
+        rewardPercentage = 0;
+        rewardPercentageLand = 0;
+        rewardPercentageMetahut = 0;
         penaltyPercentage = 10;
-        rewardDeadlineSeconds = 3600 * 24 * 30 * 3; // 3 months
-
-        poolMaxSize = 20_000_000 * 10e18;
+        rewardDeadlineSeconds = 3600 * 24 * 30 * 6; // 3 months
+        poolMaxSize = 25_000_000 * 10e18;
         minStakingAmount = 20_000 * 10e18;
-        maxStakingAmount = 500_000 * 10e18;
         penaltyDivisionStep = 30 * 3;
     }
 
     function stake(
-        NftType nftType,
-        uint256 nftId,
-        uint256 _amount,
-        bool withLevel
+        uint256 _amount
     ) public nonReentrant stakeAvailable(msg.sender, _amount) {
-        _stake(nftType, nftId, _amount, msg.sender, msg.sender, withLevel);
+        _stake(NftType.NONE, 0, _amount, msg.sender, msg.sender, true);
     }
 
-    function claim(uint256 _id, NftType nftType) public nonReentrant {
-        _claim(msg.sender, _id, nftType);
+    function claim(uint256 _id) public nonReentrant {
+        _claim(msg.sender, _id, NftType.NONE);
     }
 
     function _remove(
@@ -168,14 +181,33 @@ contract PrevilagedStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable
     }
 
     function setStakingStatus(StakeStatus status) public onlyOwner {
+        require(canActivateStaking, "Staking: not set levelDetails");
         stakeStatus = status;
     }
 
-    function setLevelReward(
+    function setLevelDetails (
         uint64 _level,
-        uint256 _rewardPercent
+        uint256 _rewardPercent,
+        uint256 _maxStakingAmount
     ) public onlyOwner {
-        levelReward[_level] = _rewardPercent;
+        if (!canActivateStaking) {
+            canActivateStaking = true;
+        }
+        levelDetails[_level] = LevelDetails({level: _level, levelReward: _rewardPercent, levelMaxStakingAmount: _maxStakingAmount});
+    }
+
+    function modifyStakingDetails(uint256 _poolMaxSize, uint256 _minStakingAmount, uint256 _penaltyDivisionSteps) public admin {
+        if (_poolMaxSize > 0) {
+            poolMaxSize = _poolMaxSize;
+        }
+        if (_minStakingAmount > 0) {
+            _minStakingAmount = _minStakingAmount;
+        }
+        if (_penaltyDivisionSteps > 0) {
+            penaltyDivisionStep = _penaltyDivisionSteps;
+        }
+
+
     }
 
     function withdraw(address payable who, uint amount) external onlyOwner {
@@ -214,7 +246,7 @@ contract PrevilagedStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable
         totalStakedToken += _amount;
 
         if (withLevel) {
-            staking.percent = levelReward[levels.getLevel(staker)];
+            staking.percent = levelDetails[levels.getLevel(staker)].levelReward;
         } else if (nftType == NftType.LAND) {
             land.transferFrom(sponsor, address(this), nftId);
             totalStakedLand += 1;
@@ -364,14 +396,6 @@ contract PrevilagedStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable
 
     function isAdminTrue() public view returns (bool) {
         return admins[msg.sender];
-    }
-
-    function getIsAdmin(address who) public view onlyOwner returns (bool) {
-        return admins[who];
-    }
-
-    function getLevelReward(uint64 _level) public view returns (uint256) {
-        return levelReward[_level];
     }
 
     // Admin functions
