@@ -130,7 +130,7 @@ contract AdvantaStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         admins[msg.sender] = true;
         token = IERC20Upgradeable(_token);
         land = IERC721Upgradeable(0xb20b17a146D0CeAAAeC707a3703d790139f747bf);
-        metahut = IERC721Upgradeable(0x499fd001d9c1ba221fde968c817c1ed4afcbb444);
+        metahut = IERC721Upgradeable(0x499Fd001d9C1Ba221fde968c817c1ED4aFcbB444);
         _typeToNft[NftType.LAND] = land;
         _typeToNft[NftType.METAHUT] = metahut;
         levels = ILevels(_levels);
