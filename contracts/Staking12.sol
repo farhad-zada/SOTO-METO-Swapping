@@ -140,7 +140,7 @@ contract AdvantaStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         rewardPercentageMetahut = 0;
         penaltyPercentage = 10;
         rewardDeadlineSeconds = 3600 * 24 * 30 * 12; //  a year
-        poolMaxSize = 25_000_000 * 10e18;
+        poolMaxSize = 50_000_000 * 10e18;
         minStakingAmount = 20_000 * 10e18;
         penaltyDivisionStep = 30 * 12;
     }
