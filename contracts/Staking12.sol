@@ -124,7 +124,7 @@ contract AdvantaStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     function initialize(
         address _token,
-        address _levels,
+        address _levels
     ) public initializer {
         __Ownable_init();
         admins[msg.sender] = true;
