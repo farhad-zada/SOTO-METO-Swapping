@@ -19,12 +19,6 @@ error Staking__ContractLacksBalance();
 error Staking__TransferFailed();
 error Staking__NotEnoughAllowance();
 
-/*
-TODO: Max staking amount based on levels
-
-
-*/
-
 contract AdvantaStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     IERC20Upgradeable public token;
@@ -78,8 +72,8 @@ contract AdvantaStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     }
 
-    mapping(address => bool) public admins;
-    mapping(address => Staking[]) public stakings;
+    mapping(address => bool) private admins;
+    mapping(address => Staking[]) private stakings;
     mapping(NftType => IERC721Upgradeable) internal _typeToNft;
     mapping(address => mapping(uint256 => address)) private owners;
     mapping(address => mapping(address => uint256[])) private ownings;
@@ -125,6 +119,7 @@ contract AdvantaStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         onlyOwner
         override
     {}
+
     // Init
 
     function initialize(
@@ -216,6 +211,10 @@ contract AdvantaStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     function setAdmin(address who, bool status) public onlyOwner {
         admins[who] = status;
+    }
+
+    function changeLevelsAddress(address _levels) public onlyOwner {
+        levels = ILevels(_levels);
     }
 
     // Helpers
