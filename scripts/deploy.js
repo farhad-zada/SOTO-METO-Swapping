@@ -1,11 +1,12 @@
 // import { ethers, upgrades } from "hardhat";
+//TODO: to run this script uncomment above code
 async function main() {
-  const SocialToken = await ethers.getContractFactory("SocialToken");
+  const SwappingMetoSoto = await ethers.getContractFactory("SwappingMetoSoto");
 
-  const socialToken = await upgrades.deployProxy(SocialToken);
+  const swappingMetoSoto = await upgrades.deployProxy(SwappingMetoSoto);
   // Start deployment, returning a promise that resolves to a contract object
-  await socialToken.deployed();
-  console.log("Contract deployed to address:", socialToken.address);
+  await swappingMetoSoto.deployed();
+  console.log("Contract deployed to address:", swappingMetoSoto.address);
 }
 
 main()
