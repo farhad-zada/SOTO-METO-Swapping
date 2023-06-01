@@ -1,11 +1,11 @@
 // import { ethers, upgrades } from "hardhat";
 async function main() {
-  const LevelsStaking = await ethers.getContractFactory("LevelsStaking");
+  const SocialToken = await ethers.getContractFactory("SocialToken");
 
-  const levelsStaking = await upgrades.deployProxy(LevelsStaking);
+  const socialToken = await upgrades.deployProxy(SocialToken);
   // Start deployment, returning a promise that resolves to a contract object
-  await levelsStaking.deployed();
-  console.log("Contract deployed to address:", levelsStaking.address);
+  await socialToken.deployed();
+  console.log("Contract deployed to address:", socialToken.address);
 }
 
 main()
