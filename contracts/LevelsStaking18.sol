@@ -20,7 +20,7 @@ error Staking__InsufficientFunds(uint balance);
 error Staking__ContractLacksBalance();
 error Staking__NotEnoughAllowance();
 
-contract LevelsStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable {
+contract LevelsStaking18 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     IERC20Upgradeable public token;
     ILevels public levels;
 
